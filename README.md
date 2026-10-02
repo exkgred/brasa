@@ -94,6 +94,8 @@ O frontend sobe sozinho, sem Nest/Postgres. Com `VITE_DEMO=true` o Axios usa um 
 
 Login da demo: `player@brasa.dev` / `password123`.
 
+Demo: [https://frontend-puce-one-23.vercel.app/](https://frontend-puce-one-23.vercel.app/)
+
 ## Testes
 
 ```bash

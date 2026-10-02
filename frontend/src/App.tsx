@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
-import { Navigate, NavLink, Route, Routes, useNavigate } from 'react-router-dom'
-import { Flame, LogOut } from 'lucide-react'
+import { NavLink, Route, Routes, useNavigate } from 'react-router-dom'
+import { LogOut } from 'lucide-react'
+import { BrandMark } from '@/components/BrandMark'
 import { useAuthStore } from '@/stores/auth'
 import LoginPage from '@/pages/LoginPage'
 import PlayPage from '@/pages/PlayPage'
@@ -14,11 +15,9 @@ function Layout({ children }: { children: React.ReactNode }) {
     <div className="min-h-dvh">
       <header className="sticky top-0 z-40 border-b border-white/10 bg-soot-950/80 backdrop-blur">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3">
-          <NavLink to="/" className="flex items-center gap-2 font-semibold text-soot-300">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-ember text-soot-950">
-              <Flame size={16} />
-            </span>
-            Brasa
+          <NavLink to="/" className="flex items-center gap-2.5 font-semibold text-soot-300">
+            <BrandMark size={32} />
+            <span className="tracking-wide">Brasa</span>
           </NavLink>
           <div className="flex items-center gap-3 text-sm text-soot-500">
             {user && <span>{user.name}</span>}
@@ -27,7 +26,7 @@ function Layout({ children }: { children: React.ReactNode }) {
               className="inline-flex items-center gap-1 rounded-md px-3 py-2 hover:bg-white/5 hover:text-soot-300"
               onClick={() => {
                 logout()
-                navigate('/login')
+                navigate('/')
               }}
             >
               <LogOut size={14} /> Sair
@@ -35,14 +34,14 @@ function Layout({ children }: { children: React.ReactNode }) {
           </div>
         </div>
       </header>
-      <main className="mx-auto max-w-5xl px-4 py-6">{children}</main>
+      <main className="app-main mx-auto max-w-5xl px-4 py-4">{children}</main>
     </div>
   )
 }
 
 function Private({ children }: { children: React.ReactNode }) {
   const token = useAuthStore((s) => s.accessToken)
-  if (!token) return <Navigate to="/login" replace />
+  if (!token) return <LoginPage />
   return <Layout>{children}</Layout>
 }
 
@@ -54,7 +53,7 @@ export default function App() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
-      <Route path="/" element={<Private><PlayPage /></Private>} />
+      <Route path="*" element={<Private><PlayPage /></Private>} />
     </Routes>
   )
 }

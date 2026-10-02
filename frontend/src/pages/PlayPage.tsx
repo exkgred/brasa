@@ -1,17 +1,15 @@
 import { useEffect, useState } from 'react'
-import { Flame, Heart, Coins, Zap } from 'lucide-react'
+import { Layers } from 'lucide-react'
 import { cardById } from '@game/catalog'
-import type { RunState, ScoreEntry } from '@game/types'
+import type { CombatState, RunState, ScoreEntry } from '@game/types'
+import { BrandMark } from '@/components/BrandMark'
 import { CardFace } from '@/components/CardFace'
+import { ForgeMap } from '@/components/ForgeMap'
+import { HeroPortrait } from '@/components/HeroPortrait'
+import { HowToPlay } from '@/components/HowToPlay'
+import { ManaPips } from '@/components/ManaPips'
 import { api, errorMessage, unwrap } from '@/lib/api'
 import type { Envelope } from '@/lib/types'
-
-const NODE_LABEL = {
-  COMBAT: 'Combate',
-  SHOP: 'Banca',
-  REST: 'Descanso',
-  BOSS: 'Chefe',
-} as const
 
 export default function PlayPage() {
   const [run, setRun] = useState<RunState | null>(null)
@@ -51,18 +49,33 @@ export default function PlayPage() {
     })()
   }, [])
 
+  useEffect(() => {
+    document.body.classList.toggle('in-combat', Boolean(run?.phase === 'COMBAT' && run.combat))
+    return () => document.body.classList.remove('in-combat')
+  }, [run])
+
   if (!run) {
     return <p className="text-soot-500">Acendendo os foles…</p>
   }
 
+  if (run.phase === 'COMBAT' && run.combat) {
+    return (
+      <CombatBoard
+        combat={run.combat}
+        error={error}
+        busy={busy}
+        onPlay={(instanceId) => command('/runs/current/play', { instanceId })}
+        onEndTurn={() => command('/runs/current/end-turn')}
+      />
+    )
+  }
+
   return (
     <div className="space-y-6">
-      <header className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2 text-sm text-soot-500">
-          <Heart size={16} className="text-ember" /> {run.hp}/{run.maxHp}
-          <Coins size={16} className="ml-2 text-amber-300" /> {run.gold}
-          <span className="ml-2 rounded-full bg-white/5 px-2 py-0.5 text-xs">{run.score} pts</span>
-        </div>
+      <header className="flex flex-wrap items-center justify-between gap-3 text-sm text-soot-500">
+        <span>
+          Vida {run.hp}/{run.maxHp} · ouro {run.gold} · {run.score} pts
+        </span>
         {(run.phase === 'WON' || run.phase === 'LOST') && (
           <button
             type="button"
@@ -74,129 +87,55 @@ export default function PlayPage() {
         )}
       </header>
 
-      {error && <p className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-300">{error}</p>}
-
-      {run.phase === 'MAP' && (
-        <section className="space-y-4">
-          <h2 className="text-lg font-semibold">O Cinzeiro</h2>
-          <div className="grid gap-2 sm:grid-cols-3">
-            {run.map.map((node) => {
-              const current = node.index === run.floor && !node.cleared
-              return (
-                <div
-                  key={node.id}
-                  className={`rounded-xl border px-4 py-3 text-sm ${
-                    current ? 'border-ember/50 bg-ember/10 text-ember' : 'border-white/10 bg-soot-900 text-soot-500'
-                  }`}
-                >
-                  <p className="font-medium">{NODE_LABEL[node.kind]}</p>
-                  <p className="text-xs">{node.cleared ? 'limpo' : current ? 'próximo' : 'à frente'}</p>
-                </div>
-              )
-            })}
-          </div>
-          <button
-            type="button"
-            disabled={busy}
-            className="rounded-lg bg-ember px-4 py-2 font-medium text-soot-950 disabled:opacity-50"
-            onClick={() => command('/runs/current/enter')}
-          >
-            Entrar no próximo nó
-          </button>
-        </section>
+      {error && (
+        <p className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-300">{error}</p>
       )}
 
-      {run.phase === 'COMBAT' && run.combat && (
-        <section className="space-y-5">
-          <div className="grid gap-3 md:grid-cols-2">
-            {run.combat.enemies.map((enemy) => (
-              <article key={enemy.id} className="rounded-2xl border border-white/10 bg-soot-900 p-4">
-                <h3 className="font-semibold">{enemy.name}</h3>
-                <p className="mt-1 text-sm text-soot-500">
-                  {enemy.hp}/{enemy.maxHp} vida · bloco {enemy.block}
-                  {enemy.burn > 0 ? ` · queima ${enemy.burn}` : ''}
-                </p>
-                <p className="mt-2 text-sm text-ember">
-                  Intenção: {enemy.intent?.kind === 'DEFEND' ? `defende ${enemy.intent.value}` : `ataca ${enemy.intent?.value}`}
-                </p>
-                <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/10">
-                  <div className="h-full bg-ember" style={{ width: `${(enemy.hp / enemy.maxHp) * 100}%` }} />
-                </div>
-              </article>
-            ))}
-            <article className="rounded-2xl border border-ember/30 bg-ember/5 p-4">
-              <h3 className="font-semibold">Você</h3>
-              <p className="mt-1 flex flex-wrap items-center gap-3 text-sm text-soot-500">
-                <span className="inline-flex items-center gap-1"><Heart size={14} /> {run.combat.player.hp}</span>
-                <span>bloco {run.combat.player.block}</span>
-                <span className="inline-flex items-center gap-1"><Zap size={14} className="text-ember" /> {run.combat.energy}</span>
-              </p>
-            </article>
-          </div>
-          <div className="flex flex-wrap justify-center gap-3">
-            {run.combat.hand.map((card) => {
-              const def = cardById(card.cardId)
-              const locked = busy || def.effect.unplayable || def.cost > run.combat!.energy
-              return (
-                <CardFace
-                  key={card.instanceId}
-                  cardId={card.cardId}
-                  disabled={locked}
-                  onClick={() => command('/runs/current/play', { instanceId: card.instanceId })}
-                />
-              )
-            })}
-          </div>
-          <div className="flex justify-center">
-            <button
-              type="button"
-              disabled={busy}
-              className="rounded-lg border border-white/15 px-4 py-2 text-sm hover:bg-white/5 disabled:opacity-50"
-              onClick={() => command('/runs/current/end-turn')}
-            >
-              Encerrar turno
-            </button>
-          </div>
-          <ul className="max-h-28 space-y-1 overflow-auto text-xs text-soot-500">
-            {run.combat.log.slice(-6).map((line, index) => (
-              <li key={`${line}-${index}`}>{line}</li>
-            ))}
-          </ul>
-        </section>
-      )}
+      {run.phase === 'MAP' && <ForgeMap run={run} busy={busy} onEnter={() => command('/runs/current/enter')} />}
 
       {run.phase === 'REWARD' && (
         <section className="space-y-4">
-          <h2 className="text-lg font-semibold">A forja oferece uma chapa</h2>
-          <div className="flex flex-wrap gap-3">
+          <div>
+            <h2 className="text-lg font-semibold">Recompensa: escolha 1 carta</h2>
+            <p className="text-sm text-soot-500">Ela entra no baralho desta run. Ou recuse se nenhuma servir.</p>
+          </div>
+          <div className="flex flex-wrap justify-center gap-3">
             {run.rewardOffer.map((cardId) => (
-              <CardFace
-                key={cardId}
-                cardId={cardId}
-                onClick={() => command('/runs/current/reward', { cardId })}
-              />
+              <CardFace key={cardId} cardId={cardId} playable onClick={() => command('/runs/current/reward', { cardId })} />
             ))}
           </div>
           <button type="button" className="text-sm text-soot-500 underline" onClick={() => command('/runs/current/skip-reward')}>
-            Recusar
+            Não quero carta
           </button>
         </section>
       )}
 
       {run.phase === 'SHOP' && (
         <section className="space-y-4">
-          <h2 className="text-lg font-semibold">Banca de sucata · {run.gold} ouro</h2>
-          <div className="flex flex-wrap gap-3">
-            {run.shopOffer.map((cardId) => (
-              <CardFace
-                key={cardId}
-                cardId={cardId}
-                price={cardById(cardId).shopCost}
-                onClick={() => command('/runs/current/shop', { cardId })}
-              />
-            ))}
+          <div>
+            <h2 className="text-lg font-semibold">Banca de sucata</h2>
+            <p className="text-sm text-soot-500">Você tem {run.gold} ouro. Clique na chapa para comprar, depois saia.</p>
           </div>
-          <button type="button" className="rounded-lg bg-ember px-4 py-2 text-sm font-medium text-soot-950" onClick={() => command('/runs/current/leave-shop')}>
+          <div className="flex flex-wrap justify-center gap-3">
+            {run.shopOffer.map((cardId) => {
+              const price = cardById(cardId).shopCost ?? 50
+              return (
+                <CardFace
+                  key={cardId}
+                  cardId={cardId}
+                  price={price}
+                  playable={run.gold >= price}
+                  disabled={run.gold < price}
+                  onClick={() => command('/runs/current/shop', { cardId })}
+                />
+              )
+            })}
+          </div>
+          <button
+            type="button"
+            className="rounded-lg bg-ember px-4 py-2 text-sm font-medium text-soot-950"
+            onClick={() => command('/runs/current/leave-shop')}
+          >
             Sair da banca
           </button>
         </section>
@@ -204,10 +143,10 @@ export default function PlayPage() {
 
       {run.phase === 'REST' && (
         <section className="space-y-3 rounded-2xl border border-white/10 bg-soot-900 p-6">
-          <h2 className="text-lg font-semibold">Brasa residual</h2>
-          <p className="text-sm text-soot-500">Aquece os ossos. Recupera 25 de vida.</p>
+          <h2 className="text-lg font-semibold">Ponto de descanso</h2>
+          <p className="text-sm text-soot-500">Recupera 25 de vida (hoje {run.hp}/{run.maxHp}).</p>
           <button type="button" className="rounded-lg bg-ember px-4 py-2 font-medium text-soot-950" onClick={() => command('/runs/current/rest')}>
-            Descansar
+            Descansar e seguir
           </button>
         </section>
       )}
@@ -215,7 +154,7 @@ export default function PlayPage() {
       {(run.phase === 'WON' || run.phase === 'LOST') && (
         <section className="rounded-2xl border border-white/10 bg-soot-900 p-6">
           <h2 className="text-2xl font-semibold">
-            {run.phase === 'WON' ? 'A Fornalha Fria apagou.' : 'A brasa morreu.'}
+            {run.phase === 'WON' ? 'Você venceu a Fornalha Fria.' : 'Você morreu. A brasa apagou.'}
           </h2>
           <p className="mt-2 text-soot-500">Pontuação {run.score}</p>
         </section>
@@ -223,15 +162,17 @@ export default function PlayPage() {
 
       <aside className="rounded-2xl border border-white/10 bg-soot-900/70 p-4">
         <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold">
-          <Flame size={14} className="text-ember" /> Ranking da forja
+          <BrandMark size={18} /> Ranking
         </h3>
         {scores.length === 0 ? (
-          <p className="text-sm text-soot-500">Nenhuma run encerrada ainda.</p>
+          <p className="text-sm text-soot-500">Termine uma run para aparecer aqui.</p>
         ) : (
           <ol className="space-y-1 text-sm text-soot-500">
             {scores.map((entry) => (
               <li key={entry.id} className="flex justify-between">
-                <span>{entry.playerName} · {entry.won ? 'vitória' : 'queda'}</span>
+                <span>
+                  {entry.playerName} · {entry.won ? 'vitória' : 'queda'}
+                </span>
                 <span className="text-soot-300">{entry.score}</span>
               </li>
             ))}
@@ -241,3 +182,95 @@ export default function PlayPage() {
     </div>
   )
 }
+
+function CombatBoard({
+  combat,
+  error,
+  busy,
+  onPlay,
+  onEndTurn,
+}: {
+  combat: CombatState
+  error: string
+  busy: boolean
+  onPlay: (instanceId: string) => void
+  onEndTurn: () => void
+}) {
+  const enemy = combat.enemies[0]
+  const playableCount = combat.hand.filter((card) => {
+    const def = cardById(card.cardId)
+    return !def.effect.unplayable && def.cost <= combat.energy
+  }).length
+  const coach =
+    playableCount > 0
+      ? 'Clique numa carta com brilho dourado para jogar'
+      : 'Sem jogadas. Encerrar turno — o inimigo faz o que avisou'
+  const lastLog = combat.log[combat.log.length - 1] ?? 'Seu turno. Jogue cartas ou encerre.'
+
+  return (
+    <div className="battlefield">
+      <div className="board-chrome">
+        <p className="turn-ribbon">Seu turno {combat.turn}</p>
+        <HowToPlay autoOpen />
+      </div>
+      {error && (
+        <p className="mb-2 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-300">{error}</p>
+      )}
+
+      <div className="enemy-row">
+        {enemy && <HeroPortrait fighter={enemy} side="enemy" intent={enemy.intent} />}
+      </div>
+
+      <div className="mid-row">
+        <p className="combat-banner">{lastLog}</p>
+        <button type="button" disabled={busy} className={`end-turn-btn ${playableCount === 0 ? 'end-turn-ready' : ''}`} onClick={onEndTurn}>
+          Encerrar
+          <span>turno</span>
+        </button>
+      </div>
+
+      <div className="player-row">
+        <div className="pile-col">
+          <Pile label="Compra" count={combat.drawPile.length} />
+          <Pile label="Descarte" count={combat.discardPile.length} />
+        </div>
+        <HeroPortrait fighter={combat.player} side="player" intent={enemy?.intent} />
+        <ManaPips energy={combat.energy} max={combat.maxEnergy} />
+      </div>
+
+      <p className="coach-line">{coach}</p>
+
+      <div className="hand-row">
+        {combat.hand.map((card, index) => {
+          const def = cardById(card.cardId)
+          const playable = !busy && !def.effect.unplayable && def.cost <= combat.energy
+          const locked = busy || def.effect.unplayable || def.cost > combat.energy
+          const tilt = (index - (combat.hand.length - 1) / 2) * 5
+          return (
+            <div key={card.instanceId} className="hand-card" style={{ transform: `rotate(${tilt}deg)` }}>
+              <CardFace
+                cardId={card.cardId}
+                playable={playable}
+                disabled={locked}
+                onClick={playable ? () => onPlay(card.instanceId) : undefined}
+              />
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+function Pile({ label, count }: { label: string; count: number }) {
+  return (
+    <div className="deck-pile" title={label}>
+      <div className="deck-back">
+        <Layers size={16} />
+        <strong>{count}</strong>
+      </div>
+      <span>{label}</span>
+    </div>
+  )
+}
+

@@ -1,5 +1,6 @@
 import { cardById } from '@game/catalog'
 import type { CardType, Sigil } from '@game/types'
+import { cardHint } from '@/lib/card-copy'
 
 const TYPE_THEME: Record<CardType, { wash: string; label: string; rim: string }> = {
   golpe: { wash: '#9a3412', label: 'Golpe', rim: '#fb923c' },
@@ -9,7 +10,13 @@ const TYPE_THEME: Record<CardType, { wash: string; label: string; rim: string }>
 }
 
 function SigilMark({ sigil, color }: { sigil: Sigil; color: string }) {
-  const common = { fill: 'none', stroke: color, strokeWidth: 3.2, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const }
+  const common = {
+    fill: 'none',
+    stroke: color,
+    strokeWidth: 3.2,
+    strokeLinecap: 'round' as const,
+    strokeLinejoin: 'round' as const,
+  }
   switch (sigil) {
     case 'malho':
       return (
@@ -52,48 +59,64 @@ function SigilMark({ sigil, color }: { sigil: Sigil; color: string }) {
 interface CardFaceProps {
   cardId: string
   disabled?: boolean
+  playable?: boolean
   compact?: boolean
   onClick?: () => void
   price?: number
 }
 
-export function CardFace({ cardId, disabled, compact, onClick, price }: CardFaceProps) {
+export function CardFace({ cardId, disabled, playable, compact, onClick, price }: CardFaceProps) {
   const card = cardById(cardId)
   const theme = TYPE_THEME[card.type]
-  const Tag = onClick ? 'button' : 'div'
+  const damage = card.effect.damage
+  const block = card.effect.block
 
   return (
-    <Tag
-      type={onClick ? 'button' : undefined}
+    <button
+      type="button"
       onClick={onClick}
-      disabled={disabled}
-      className={`relative overflow-hidden rounded-xl border text-left shadow-ember transition ${
-        compact ? 'w-[132px]' : 'w-[168px]'
-      } ${disabled ? 'opacity-50' : onClick ? 'hover:-translate-y-1 hover:border-ember/70' : ''} border-white/10`}
-      style={{ background: '#1a100b' }}
+      disabled={disabled || !onClick}
+      title={cardHint(cardId)}
+      className={`card-face group relative overflow-hidden text-left ${compact ? 'card-compact' : ''} ${
+        playable ? 'card-playable' : ''
+      } ${disabled ? 'card-locked' : ''}`}
     >
-      <div className="absolute inset-0 opacity-80" style={{ background: `radial-gradient(circle at 50% 30%, ${theme.wash}, transparent 70%)` }} />
-      <div className="relative flex items-center justify-between px-2.5 pt-2">
-        <span
-          className="flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-bold"
-          style={{ background: theme.rim, color: '#1a100b' }}
-        >
-          {card.cost}
-        </span>
+      <div
+        className="absolute inset-0 opacity-80"
+        style={{ background: `radial-gradient(circle at 50% 28%, ${theme.wash}, transparent 68%)` }}
+      />
+      <div className={`mana-crystal ${playable ? 'mana-crystal-ready' : ''}`}>{card.cost}</div>
+      <div className="relative flex justify-end px-2.5 pt-2">
         <span className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: theme.rim }}>
           {theme.label}
         </span>
       </div>
-      <svg viewBox="0 0 92 100" className={`relative mx-auto block ${compact ? 'h-20' : 'h-28'}`} aria-hidden="true">
+      <svg viewBox="0 0 92 100" className={`relative mx-auto block ${compact ? 'h-14' : 'h-24'}`} aria-hidden="true">
         <SigilMark sigil={card.sigil} color={theme.rim} />
       </svg>
-      <div className="relative border-t border-white/10 px-2.5 py-2">
-        <p className="text-[13px] font-semibold text-soot-300">{card.name}</p>
+      <div className="relative border-t border-white/10 px-2.5 pb-7 pt-2">
+        <p className="text-[13px] font-semibold leading-tight text-soot-300">{card.name}</p>
         <p className="mt-0.5 text-[11px] leading-snug text-soot-500">{card.text}</p>
-        {price !== undefined && (
-          <p className="mt-1 text-[11px] font-medium text-ember">{price} ouro</p>
-        )}
+        {price !== undefined && <p className="mt-1 text-[11px] font-medium text-ember">{price} ouro</p>}
       </div>
-    </Tag>
+      {(damage || block) && (
+        <div className="card-stats">
+          {damage ? (
+            <span className="stat-dmg" title="Dano">
+              {damage}
+            </span>
+          ) : (
+            <span />
+          )}
+          {block ? (
+            <span className="stat-blk" title="Bloco">
+              {block}
+            </span>
+          ) : (
+            <span />
+          )}
+        </div>
+      )}
+    </button>
   )
 }
