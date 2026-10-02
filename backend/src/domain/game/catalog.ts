@@ -447,6 +447,24 @@ export const ENEMIES: EnemyDef[] = [
     ],
   },
   {
+    id: 'fera-espinhos',
+    name: 'Fera de espinhos',
+    maxHp: 32,
+    patterns: [
+      { kind: 'ATTACK', value: 9 },
+      { kind: 'HEAVY', value: 12 },
+    ],
+  },
+  {
+    id: 'aranha-caldeira',
+    name: 'Aranha-caldeira',
+    maxHp: 26,
+    patterns: [
+      { kind: 'ATTACK', value: 8 },
+      { kind: 'DEFEND', value: 7 },
+    ],
+  },
+  {
     id: 'padre-forno',
     name: 'Padre do forno',
     maxHp: 36,

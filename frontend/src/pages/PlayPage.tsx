@@ -10,6 +10,7 @@ import { HowToPlay } from '@/components/HowToPlay'
 import { ManaPips } from '@/components/ManaPips'
 import { PrepScreen } from '@/components/PrepScreen'
 import { api, errorMessage, unwrap } from '@/lib/api'
+import { pickBoard } from '@/lib/art'
 import type { Envelope } from '@/lib/types'
 
 export default function PlayPage() {
@@ -210,6 +211,11 @@ function CombatBoard({
   onEndTurn: () => void
 }) {
   const enemy = combat.enemies[0]
+  const enemyId = enemy?.id ?? 'mesa'
+  const [board, setBoard] = useState(() => pickBoard())
+  useEffect(() => {
+    setBoard(pickBoard())
+  }, [enemyId])
   const playableCount = combat.hand.filter((card) => {
     const def = cardById(card.cardId)
     return !def.effect.unplayable && def.cost <= combat.energy
@@ -221,7 +227,7 @@ function CombatBoard({
   const lastLog = combat.log[combat.log.length - 1] ?? 'Seu turno. Jogue cartas ou encerre.'
 
   return (
-    <div className="battlefield">
+    <div className="battlefield" style={{ backgroundImage: `url(${board})` }}>
       <div className="board-chrome">
         <p className="turn-ribbon">Seu turno {combat.turn}</p>
         <HowToPlay autoOpen />

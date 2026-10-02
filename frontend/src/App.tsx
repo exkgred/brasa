@@ -15,9 +15,8 @@ function Layout({ children }: { children: React.ReactNode }) {
     <div className="min-h-dvh">
       <header className="sticky top-0 z-40 border-b border-white/10 bg-soot-950/80 backdrop-blur">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3">
-          <NavLink to="/" className="flex items-center gap-2.5 font-semibold text-soot-300">
-            <BrandMark size={32} />
-            <span className="tracking-wide">Brasa</span>
+          <NavLink to="/" className="flex items-center">
+            <BrandMark size={36} />
           </NavLink>
           <div className="flex items-center gap-3 text-sm text-soot-500">
             {user && <span>{user.name}</span>}

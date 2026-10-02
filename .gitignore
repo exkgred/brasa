@@ -9,3 +9,4 @@ frontend/dist
 backend/dist
 backend/coverage
 !frontend/.env.production
+images/

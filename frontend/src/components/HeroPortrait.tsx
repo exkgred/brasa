@@ -2,6 +2,7 @@ import { Shield, Sword } from 'lucide-react'
 import { BrandMark } from '@/components/BrandMark'
 import type { Combatant, Intent } from '@game/types'
 import { incomingDamage, intentCaption } from '@/lib/card-copy'
+import { classArt, enemyArt } from '@/lib/art'
 
 interface HeroPortraitProps {
   fighter: Combatant
@@ -13,6 +14,7 @@ export function HeroPortrait({ fighter, side, intent }: HeroPortraitProps) {
   const enemy = side === 'enemy'
   const incoming = enemy ? 0 : incomingDamage(intent, fighter.block)
   const attacking = intent && intent.kind !== 'DEFEND'
+  const art = enemy ? enemyArt(fighter.id) : classArt(fighter.id)
 
   return (
     <div className={`hero-stack ${enemy ? 'hero-enemy' : 'hero-player'}`}>
@@ -25,7 +27,9 @@ export function HeroPortrait({ fighter, side, intent }: HeroPortraitProps) {
       )}
       <div className="relative">
         <div className={`hero-frame ${enemy ? 'hero-frame-enemy' : 'hero-frame-player'}`}>
-          {enemy ? (
+          {art ? (
+            <img src={art} alt={fighter.name} className="hero-art" />
+          ) : enemy ? (
             <span className="text-5xl font-black tracking-tight text-red-200/80">{fighter.name.slice(0, 1)}</span>
           ) : (
             <BrandMark size={76} />

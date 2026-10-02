@@ -37,7 +37,7 @@ export default function LoginPage() {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(249,115,22,0.18),transparent_42%)]" />
         <div className="relative">
           <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-soot-500">
-            <BrandMark size={18} />
+            <BrandMark size={22} />
             Roguelike de cartas · Caldeira
           </div>
           <h1 className="mt-8 max-w-md text-4xl font-semibold tracking-tight text-soot-300">
@@ -45,7 +45,7 @@ export default function LoginPage() {
             <span className="block text-ember">Desça ao Cinzeiro.</span>
           </h1>
           <p className="mt-4 max-w-sm text-sm leading-relaxed text-soot-500">
-            Quatro classes, um baralho que você monta, combate no estilo Hearthstone: mana, cartas na mão, inimigo em cima.
+            Quatro classes, um baralho que você monta, combate com mana, cartas na mão e o inimigo em cima.
           </p>
         </div>
         <ol className="relative grid gap-3 text-sm text-soot-500">
@@ -68,7 +68,7 @@ export default function LoginPage() {
         >
           <div>
             <div className="mb-4">
-              <BrandMark size={48} />
+              <BrandMark size={56} />
             </div>
             <h2 className="text-2xl font-semibold text-soot-300">Entrar na forja</h2>
             <p className="mt-1 text-sm text-soot-500">A senha já vem preenchida.</p>

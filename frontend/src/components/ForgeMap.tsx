@@ -1,4 +1,6 @@
+import { useState } from 'react'
 import { classById } from '@game/catalog'
+import { pickBoard } from '@/lib/art'
 import { BedDouble, Check, Flame, Store, Swords } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type { MapNode, NodeKind, RunState } from '@game/types'
@@ -10,7 +12,7 @@ const NODE_COPY: Record<NodeKind, { label: string; hint: string; Icon: LucideIco
   BOSS: { label: 'Fornalha Fria', hint: 'O chefe. Mate-a para vencer a run', Icon: Flame },
 }
 
-const OFFSETS = [0, -56, 48, -40, 36, 0]
+const OFFSETS = [0, -48, 40, -32, 48, -36, 28, 0]
 
 interface ForgeMapProps {
   run: RunState
@@ -21,6 +23,7 @@ interface ForgeMapProps {
 export function ForgeMap({ run, busy, onEnter }: ForgeMapProps) {
   const current = run.map[run.floor]
   const copy = NODE_COPY[current?.kind ?? 'COMBAT']
+  const [board] = useState(() => pickBoard())
 
   return (
     <section className="forge-map">
@@ -37,7 +40,11 @@ export function ForgeMap({ run, busy, onEnter }: ForgeMapProps) {
         </p>
       </header>
 
-      <div className="forge-shaft" aria-label="Mapa da run">
+      <div
+        className="forge-shaft"
+        aria-label="Mapa da run"
+        style={{ backgroundImage: `url(${board})` }}
+      >
         <svg className="forge-rail" viewBox="0 0 320 560" preserveAspectRatio="none" aria-hidden="true">
           <path
             d="M160 28 C104 100 216 170 160 240 C104 310 216 380 160 448 C160 480 160 510 160 536"

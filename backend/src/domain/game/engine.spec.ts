@@ -63,6 +63,8 @@ describe('catalog', () => {
   it('cardById e enemyById conhecidos → definição', () => {
     expect(cardById('malho-quente').effect.damage).toBe(6);
     expect(enemyById('fera-ferrugem').maxHp).toBe(28);
+    expect(enemyById('fera-espinhos').maxHp).toBe(32);
+    expect(enemyById('aranha-caldeira').name).toBe('Aranha-caldeira');
     expect(classById('malhador').energy).toBe(3);
   });
 
@@ -88,8 +90,8 @@ describe('startRun / mapa', () => {
     expect(run.gold).toBe(50);
     expect(run.deck).toHaveLength(10);
     expect(run.classId).toBe('foleiro');
-    expect(run.map).toHaveLength(6);
-    expect(run.map[5].kind).toBe('BOSS');
+    expect(run.map).toHaveLength(8);
+    expect(run.map[7].kind).toBe('BOSS');
   });
 
   it('escolhe classe e confirma o baralho', () => {
@@ -271,7 +273,7 @@ describe('recompensa, loja e descanso', () => {
 
   it('loja vende e sai para o mapa', () => {
     let state = runWith(4);
-    state.floor = 2;
+    state.floor = 3;
     state = enterNode(state);
     expect(state.phase).toBe('SHOP');
     expect(state.shopOffer.length).toBeGreaterThan(0);
@@ -286,19 +288,19 @@ describe('recompensa, loja e descanso', () => {
     expect(() => buyShop(poor, cardId)).toThrow('Ouro');
     const left = leaveShop(bought);
     expect(left.phase).toBe('MAP');
-    expect(left.floor).toBe(3);
+    expect(left.floor).toBe(4);
   });
 
   it('descanso cura e avança', () => {
     let state = runWith(5);
-    state.floor = 4;
+    state.floor = 6;
     state.hp = 20;
     state = enterNode(state);
     expect(state.phase).toBe('REST');
     const after = rest(state);
     expect(after.hp).toBe(45);
     expect(after.phase).toBe('MAP');
-    expect(after.floor).toBe(5);
+    expect(after.floor).toBe(7);
   });
 });
 
@@ -361,7 +363,7 @@ describe('ramos extras do motor', () => {
     }
 
     let boss = runWith(8);
-    boss.floor = 5;
+    boss.floor = 7;
     boss = enterNode(boss);
     if (boss.combat) {
       boss.combat.enemies[0].hp = 1;
@@ -393,7 +395,7 @@ describe('ramos extras do motor', () => {
     const reward = runWith(1);
     reward.phase = 'REWARD';
     reward.rewardOffer = ['faisca'];
-    reward.floor = 5;
+    reward.floor = 7;
     expect(pickReward(reward, 'faisca').phase).toBe('WON');
     expect(skipReward(reward).phase).toBe('WON');
   });

@@ -2,6 +2,7 @@ import { CLASSES, MAX_COPIES, MAX_DECK, MIN_DECK, cardById, classById, classPool
 import type { ClassId, RunState } from '@game/types'
 import { useEffect, useMemo, useState } from 'react'
 import { CardFace } from '@/components/CardFace'
+import { classArt } from '@/lib/art'
 
 interface PrepScreenProps {
   run: RunState
@@ -49,6 +50,7 @@ function ClassGrid({
     <div className="class-grid">
       {CLASSES.map((cls) => {
         const active = selected === cls.id
+        const art = classArt(cls.id)
         return (
           <button
             key={cls.id}
@@ -57,6 +59,7 @@ function ClassGrid({
             className={`class-card ${active ? 'class-card-on' : ''}`}
             onClick={() => onChoose(cls.id)}
           >
+            {art && <img src={art} alt="" className="class-card-art" />}
             <p className="text-xs font-semibold uppercase tracking-wide text-ember">{cls.title}</p>
             <p className="mt-1 text-lg font-semibold text-soot-300">{cls.name}</p>
             <p className="mt-2 text-sm leading-relaxed text-soot-500">{cls.blurb}</p>

@@ -42,9 +42,29 @@ body.in-combat .app-main {
 }
 
 .battlefield {
+  position: relative;
   display: flex;
   flex-direction: column;
   min-height: calc(100dvh - 5rem);
+  background-size: cover;
+  background-position: center;
+  border-radius: 1.1rem;
+  overflow: hidden;
+}
+
+.battlefield::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 50% 42%, rgba(20, 12, 8, 0.28), rgba(20, 12, 8, 0.78) 78%),
+    linear-gradient(180deg, rgba(20, 12, 8, 0.35), rgba(20, 12, 8, 0.55));
+  pointer-events: none;
+}
+
+.battlefield > * {
+  position: relative;
+  z-index: 1;
 }
 
 .board-chrome {
@@ -314,9 +334,16 @@ body.in-combat .app-main {
   width: 7.5rem;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
   border-radius: 999px;
   border-width: 4px;
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+}
+
+.hero-art {
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
 }
 
 .hero-frame-enemy {
@@ -485,17 +512,26 @@ body.in-combat .app-main {
   overflow: hidden;
   border-radius: 1.4rem;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  background:
-    radial-gradient(circle at 50% 100%, rgba(249, 115, 22, 0.28), transparent 42%),
-    radial-gradient(circle at 50% 0%, rgba(20, 12, 8, 0.2), transparent 40%),
-    linear-gradient(180deg, #1c120c 0%, #140c08 70%, #3d1408 100%);
+  background-color: #140c08;
+  background-size: cover;
+  background-position: center;
   min-height: 34rem;
   padding: 1.25rem 1rem 1.5rem;
+}
+
+.forge-shaft::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(20, 12, 8, 0.42), rgba(20, 12, 8, 0.72));
+  pointer-events: none;
 }
 
 .forge-rail {
   position: absolute;
   inset: 1.5rem 0 2.5rem;
+  z-index: 1;
   width: 100%;
   height: auto;
   pointer-events: none;
@@ -663,7 +699,15 @@ body.in-combat .app-main {
   border-radius: 1rem;
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: #1c120c;
-  padding: 1rem 1.05rem;
+  padding: 0.7rem 0.85rem 1rem;
+}
+
+.class-card-art {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 0.75rem;
+  margin-bottom: 0.7rem;
 }
 
 .class-card-on {
