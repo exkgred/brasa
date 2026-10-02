@@ -1,4 +1,16 @@
 const CLASS_ART = new Set(['foleiro', 'malhador', 'guarda-fogo', 'temperador'])
+const SIGIL_ART = new Set([
+  'malho',
+  'placa',
+  'fole',
+  'brasa',
+  'pinca',
+  'lingote',
+  'faisca',
+  'sucata',
+  'rebite',
+  'fuligem',
+])
 const ENEMY_ART = new Set([
   'fera-ferrugem',
   'fera-espinhos',
@@ -18,6 +30,11 @@ export const BOARD_ART = [
 export function classArt(classId: string): string | undefined {
   if (!CLASS_ART.has(classId)) return undefined
   return `/art/class-${classId}.png`
+}
+
+export function sigilArt(sigil: string): string | undefined {
+  if (!SIGIL_ART.has(sigil)) return undefined
+  return `/art/sigil-${sigil}.jpg`
 }
 
 export function enemyArt(enemyId: string): string | undefined {
