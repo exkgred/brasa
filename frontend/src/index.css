@@ -640,3 +640,63 @@ body.in-combat .app-main {
     justify-items: center;
   }
 }
+
+.class-grid {
+  display: grid;
+  gap: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .class-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .class-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.class-card {
+  text-align: left;
+  border-radius: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #1c120c;
+  padding: 1rem 1.05rem;
+}
+
+.class-card-on {
+  border-color: rgba(249, 115, 22, 0.55);
+  background: rgba(249, 115, 22, 0.1);
+  box-shadow: 0 0 0 1px rgba(249, 115, 22, 0.25);
+}
+
+.deck-builder {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.copy-pip,
+.class-pip {
+  position: absolute;
+  z-index: 2;
+  border-radius: 999px;
+  font-size: 0.62rem;
+  font-weight: 700;
+  padding: 0.1rem 0.4rem;
+}
+
+.copy-pip {
+  right: 0.25rem;
+  top: 0.25rem;
+  background: #140c08;
+  color: #f0d7c3;
+}
+
+.class-pip {
+  left: 0.25rem;
+  bottom: 0.35rem;
+  background: #f97316;
+  color: #140c08;
+}

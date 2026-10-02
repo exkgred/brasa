@@ -1,3 +1,4 @@
+import { classById } from '@game/catalog'
 import { BedDouble, Check, Flame, Store, Swords } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type { MapNode, NodeKind, RunState } from '@game/types'
@@ -27,6 +28,9 @@ export function ForgeMap({ run, busy, onEnter }: ForgeMapProps) {
         <div>
           <p className="forge-map-kicker">Descida ao Cinzeiro</p>
           <h2>Caminho da forja</h2>
+          {run.classId && (
+            <p className="mt-1 text-sm text-soot-500">{classById(run.classId).name} · {run.deck.length} cartas</p>
+          )}
         </div>
         <p className="forge-map-status">
           Vida {run.hp}/{run.maxHp} · {run.gold} ouro

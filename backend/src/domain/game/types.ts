@@ -1,3 +1,4 @@
+export type ClassId = 'foleiro' | 'malhador' | 'guarda-fogo' | 'temperador';
 export type CardType = 'golpe' | 'guarda' | 'fluxo' | 'escoria';
 export type Sigil =
   | 'malho'
@@ -11,7 +12,15 @@ export type Sigil =
   | 'faisca'
   | 'sucata';
 export type RunPhase =
-  'MAP' | 'COMBAT' | 'REWARD' | 'SHOP' | 'REST' | 'WON' | 'LOST';
+  | 'CLASS'
+  | 'DECK'
+  | 'MAP'
+  | 'COMBAT'
+  | 'REWARD'
+  | 'SHOP'
+  | 'REST'
+  | 'WON'
+  | 'LOST';
 export type NodeKind = 'COMBAT' | 'SHOP' | 'REST' | 'BOSS';
 export type IntentKind = 'ATTACK' | 'DEFEND' | 'HEAVY';
 
@@ -35,6 +44,17 @@ export interface CardDef {
   text: string;
   effect: CardEffect;
   shopCost?: number;
+  classIds?: ClassId[];
+}
+
+export interface ClassDef {
+  id: ClassId;
+  name: string;
+  title: string;
+  blurb: string;
+  maxHp: number;
+  energy: number;
+  starter: string[];
 }
 
 export interface EnemyPattern {
@@ -97,6 +117,8 @@ export interface RunState {
   rng: number;
   seq: number;
   phase: RunPhase;
+  classId: ClassId | null;
+  draft: string[];
   hp: number;
   maxHp: number;
   gold: number;

@@ -13,6 +13,8 @@ import { LogoutUserUseCase } from './application/use-cases/auth/logout-user.use-
 import { RefreshTokenUseCase } from './application/use-cases/auth/refresh-token.use-case';
 import {
   BuyShopUseCase,
+  ChooseClassUseCase,
+  ConfirmDeckUseCase,
   EndTurnUseCase,
   EnterNodeUseCase,
   GetCurrentRunUseCase,
@@ -74,6 +76,8 @@ import { RunsController } from './presentation/controllers/runs.controller';
     StartRunUseCase,
     GetCurrentRunUseCase,
     MutateRunUseCase,
+    ChooseClassUseCase,
+    ConfirmDeckUseCase,
     EnterNodeUseCase,
     PlayCardUseCase,
     EndTurnUseCase,

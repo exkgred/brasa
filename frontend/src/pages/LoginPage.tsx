@@ -45,18 +45,18 @@ export default function LoginPage() {
             <span className="block text-ember">Desça ao Cinzeiro.</span>
           </h1>
           <p className="mt-4 max-w-sm text-sm leading-relaxed text-soot-500">
-            Você é o último foleiro. Combate no estilo Hearthstone: mana, cartas na mão, inimigo em cima, você embaixo.
+            Quatro classes, um baralho que você monta, combate no estilo Hearthstone: mana, cartas na mão, inimigo em cima.
           </p>
         </div>
         <ol className="relative grid gap-3 text-sm text-soot-500">
           <li className="rounded-xl border border-white/10 bg-soot-900/50 px-4 py-3">
-            <strong className="text-soot-300">Mana azul.</strong> 3 cristais por turno. O custo fica no canto da carta.
+            <strong className="text-soot-300">Classe.</strong> Foleiro, Malhador, Guarda-fogo ou Temperador — vida e cartas diferentes.
           </li>
           <li className="rounded-xl border border-white/10 bg-soot-900/50 px-4 py-3">
-            <strong className="text-soot-300">Clique para jogar.</strong> Cartas douradas resolvem na hora — dano ou bloco.
+            <strong className="text-soot-300">Baralho.</strong> 10 a 14 cartas. Clique para incluir ou tirar, depois desça.
           </li>
           <li className="rounded-xl border border-white/10 bg-soot-900/50 px-4 py-3">
-            <strong className="text-soot-300">Encerrar turno.</strong> O número acima do inimigo é o que ele fará em você.
+            <strong className="text-soot-300">Combate.</strong> Cartas douradas jogam na hora. Encerrar turno: o inimigo faz o que avisou.
           </li>
         </ol>
       </aside>

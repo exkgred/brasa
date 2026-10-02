@@ -1,9 +1,9 @@
 import type { AxiosAdapter, AxiosResponse } from 'axios'
-import { startRun, enterNode, playCard, endTurn, pickReward, skipReward, buyShop, leaveShop, rest } from '@game/engine'
+import { startRun, enterNode, playCard, endTurn, pickReward, skipReward, buyShop, leaveShop, rest, chooseClass, confirmDeck } from '@game/engine'
 import type { RunState, ScoreEntry } from '@game/types'
 import type { Envelope, PublicUser } from './types'
 
-const STORAGE = 'brasa-demo-v1'
+const STORAGE = 'brasa-demo-v2'
 
 interface DemoState {
   user: PublicUser
@@ -105,6 +105,8 @@ export const demoAdapter: AxiosAdapter = async (config) => {
   const previous = state.run
   try {
     if (url.endsWith('/enter')) state.run = enterNode(state.run)
+    else if (url.endsWith('/class')) state.run = chooseClass(state.run, body.classId)
+    else if (url.endsWith('/deck')) state.run = confirmDeck(state.run, body.cardIds)
     else if (url.endsWith('/play')) state.run = playCard(state.run, body.instanceId)
     else if (url.endsWith('/end-turn')) state.run = endTurn(state.run)
     else if (url.endsWith('/skip-reward')) state.run = skipReward(state.run)

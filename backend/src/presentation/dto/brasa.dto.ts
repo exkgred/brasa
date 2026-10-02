@@ -1,5 +1,13 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEmail, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import {
+  ArrayMaxSize,
+  ArrayMinSize,
+  IsArray,
+  IsEmail,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 
 export class LoginDto {
   @ApiProperty({ example: 'player@brasa.dev' })
@@ -38,4 +46,20 @@ export class CardIdDto {
   @IsString()
   @IsNotEmpty()
   cardId!: string;
+}
+
+export class ChooseClassDto {
+  @ApiProperty({ example: 'foleiro' })
+  @IsString()
+  @IsNotEmpty()
+  classId!: string;
+}
+
+export class ConfirmDeckDto {
+  @ApiProperty({ example: ['malho-quente', 'placa-escoria'] })
+  @IsArray()
+  @ArrayMinSize(10)
+  @ArrayMaxSize(14)
+  @IsString({ each: true })
+  cardIds!: string[];
 }

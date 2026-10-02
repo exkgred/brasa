@@ -5,16 +5,20 @@ const STORAGE = 'brasa-howto-v1'
 
 const STEPS = [
   {
-    title: '1. Seu turno',
+    title: '1. Classe e baralho',
+    body: 'Escolha Foleiro, Malhador, Guarda-fogo ou Temperador. Monte 10 a 14 cartas. Depois desça ao mapa.',
+  },
+  {
+    title: '2. Seu turno',
     body: 'Você joga primeiro. Os cristais azuis são mana. Cada carta mostra o custo no círculo do canto.',
   },
   {
-    title: '2. Clique para jogar',
-    body: 'Cartas com brilho dourado cabem na mana. Elas resolvem na hora: dano no inimigo ou bloco em você. Não há lacaios no campo.',
+    title: '3. Clique para jogar',
+    body: 'Cartas com brilho dourado cabem na mana. Elas resolvem na hora: dano no inimigo ou bloco em você.',
   },
   {
-    title: '3. O inimigo avisa',
-    body: 'O número grande acima dele é o que fará ao Encerrar turno. Ataque vermelho, defesa cinza. Mate-o ou bloqueie antes.',
+    title: '4. O inimigo avisa',
+    body: 'O número grande acima dele é o que fará ao Encerrar turno. Ataque vermelho, defesa cinza.',
   },
 ]
 

@@ -1,11 +1,14 @@
-import { cardById, enemyById } from './catalog';
+import { cardById, classById, enemyById } from './catalog';
 import {
   buyShop,
+  chooseClass,
+  confirmDeck,
   endTurn,
   enterNode,
   leaveShop,
   pickReward,
   playCard,
+  preparedRun,
   rest,
   skipReward,
   startRun,
@@ -14,7 +17,7 @@ import { nextRng, pickIndex, pickUnique, shuffle } from './rng';
 import type { RunState } from './types';
 
 function runWith(seed = 7): RunState {
-  return startRun({ id: 'run-1', userId: 'user-1', seed });
+  return preparedRun({ id: 'run-1', userId: 'user-1', seed });
 }
 
 function intoCombat(seed = 7): RunState {
@@ -60,23 +63,102 @@ describe('catalog', () => {
   it('cardById e enemyById conhecidos → definição', () => {
     expect(cardById('malho-quente').effect.damage).toBe(6);
     expect(enemyById('fera-ferrugem').maxHp).toBe(28);
+    expect(classById('malhador').energy).toBe(3);
   });
 
   it('ids desconhecidos → erro', () => {
     expect(() => cardById('nao-existe')).toThrow('Carta desconhecida');
     expect(() => enemyById('nao-existe')).toThrow('Inimigo desconhecido');
+    expect(() => classById('nao-existe')).toThrow('Classe desconhecida');
   });
 });
 
 describe('startRun / mapa', () => {
+  it('começa pedindo classe', () => {
+    const raw = startRun({ id: 'run-1', userId: 'user-1', seed: 1 });
+    expect(raw.phase).toBe('CLASS');
+    expect(raw.deck).toHaveLength(0);
+    expect(raw.classId).toBeNull();
+  });
+
   it('monta deck inicial e mapa do Cinzeiro', () => {
     const run = runWith(1);
     expect(run.phase).toBe('MAP');
     expect(run.hp).toBe(60);
     expect(run.gold).toBe(50);
     expect(run.deck).toHaveLength(10);
+    expect(run.classId).toBe('foleiro');
     expect(run.map).toHaveLength(6);
     expect(run.map[5].kind).toBe('BOSS');
+  });
+
+  it('escolhe classe e confirma o baralho', () => {
+    const raw = startRun({ id: 'run-1', userId: 'user-1', seed: 2 });
+    const picked = chooseClass(raw, 'temperador');
+    expect(picked.phase).toBe('DECK');
+    expect(picked.classId).toBe('temperador');
+    expect(picked.maxHp).toBe(52);
+    expect(picked.draft).toHaveLength(10);
+    const ready = confirmDeck(picked, picked.draft);
+    expect(ready.phase).toBe('MAP');
+    expect(ready.deck).toHaveLength(10);
+    const combat = enterNode(ready);
+    expect(combat.combat?.maxEnergy).toBe(4);
+    expect(combat.combat?.player.name).toBe('Temperador');
+  });
+
+  it('baralho inválido / fase errada → erro', () => {
+    const raw = startRun({ id: 'run-1', userId: 'user-1', seed: 3 });
+    expect(() => confirmDeck(raw, [])).toThrow('baralho');
+    expect(() => chooseClass(runWith(1), 'foleiro')).toThrow('preparação');
+    const decking = chooseClass(raw, 'foleiro');
+    expect(() => confirmDeck(decking, ['malho-quente'])).toThrow('pelo menos');
+    const tooMany = [
+      'malho-quente',
+      'malho-quente',
+      'placa-escoria',
+      'placa-escoria',
+      'sopro-fole',
+      'sopro-fole',
+      'faisca',
+      'faisca',
+      'sucata',
+      'sucata',
+      'lingote',
+      'lingote',
+      'rebite',
+      'rebite',
+      'lasca',
+    ];
+    expect(() => confirmDeck(decking, tooMany)).toThrow('máximo');
+    expect(() =>
+      confirmDeck(decking, [
+        ...decking.draft.slice(0, 8),
+        'impacto',
+        'impacto',
+      ]),
+    ).toThrow('classe');
+    expect(() =>
+      confirmDeck(decking, [
+        'malho-quente',
+        'malho-quente',
+        'malho-quente',
+        'placa-escoria',
+        'placa-escoria',
+        'sopro-fole',
+        'sopro-fole',
+        'faisca',
+        'faisca',
+        'sucata',
+      ]),
+    ).toThrow('cópias');
+    const orphan = chooseClass(raw, 'foleiro');
+    orphan.classId = null;
+    expect(() => confirmDeck(orphan, orphan.draft)).toThrow('classe primeiro');
+    const emptyMap = startRun({ id: 'run-2', userId: 'user-1', seed: 4 });
+    emptyMap.phase = 'MAP';
+    expect(() => enterNode(emptyMap)).toThrow('baralho');
+    expect(() => chooseClass(decking, 'nao-existe')).toThrow('Classe');
   });
 
   it('entrar fora do mapa → erro', () => {

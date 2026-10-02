@@ -8,8 +8,10 @@ Backend em NestJS (Clean Architecture), frontend em React + Vite, PostgreSQL e P
 
 ## O que o jogo faz
 
+- Quatro classes: Foleiro, Malhador, Guarda-fogo e Temperador
+- Você monta o baralho (10–14 cartas, no máximo 2 iguais) antes de descer
 - Run no mapa: combate → banca → combate → descanso → **Fornalha Fria**
-- Combate por turnos: 3 de energia, compre 5, bloco e queima
+- Combate por turnos: mana da classe, compre 5, bloco e queima
 - Recompensa de carta, loja de sucata, descanso (+25 vida)
 - Ranking das runs
 - Demo na Vercel com o motor no `localStorage`

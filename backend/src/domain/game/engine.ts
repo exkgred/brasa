@@ -4,17 +4,17 @@ import {
   DRAW_PER_TURN,
   PLAYER_MAX_HP,
   REST_HEAL,
-  REWARD_POOL,
-  SHOP_POOL,
-  STARTER_CARD_IDS,
-  STARTING_ENERGY,
   STARTING_GOLD,
   cardById,
+  classById,
   enemyById,
+  offerPoolFor,
+  validateDeck,
 } from './catalog';
 import { pickUnique, shuffle } from './rng';
 import type {
   CardInstance,
+  ClassId,
   CombatState,
   Combatant,
   MapNode,
@@ -134,20 +134,21 @@ function openCombat(run: RunState, enemyId: string): void {
     burn: 0,
   };
   setEnemyIntent(enemy, 0, enemyId);
+  const cls = classById(run.classId ?? 'foleiro');
   const shuffled = shuffle(clone(run.deck), run.rng);
   run.rng = shuffled.next;
   const combat: CombatState = {
     player: {
-      id: 'foleiro',
-      name: 'Foleiro',
+      id: cls.id,
+      name: cls.name,
       hp: run.hp,
       maxHp: run.maxHp,
       block: 0,
       burn: 0,
     },
     enemies: [enemy],
-    energy: STARTING_ENERGY,
-    maxEnergy: STARTING_ENERGY,
+    energy: cls.energy,
+    maxEnergy: cls.energy,
     hand: [],
     drawPile: shuffled.items,
     discardPile: [],
@@ -172,7 +173,7 @@ function finishCombat(run: RunState, boss: boolean): void {
     run.score = computeScore(run);
     return;
   }
-  const picked = pickUnique(REWARD_POOL, 3, run.rng);
+  const picked = pickUnique(offerPoolFor(run.classId), 3, run.rng);
   run.rng = picked.next;
   run.rewardOffer = picked.items;
   run.phase = 'REWARD';
@@ -200,7 +201,9 @@ export function startRun(input: {
     seed,
     rng: seed >>> 0,
     seq: 0,
-    phase: 'MAP',
+    phase: 'CLASS',
+    classId: null,
+    draft: [],
     hp: PLAYER_MAX_HP,
     maxHp: PLAYER_MAX_HP,
     gold: STARTING_GOLD,
@@ -212,15 +215,59 @@ export function startRun(input: {
     rewardOffer: [],
     score: 0,
   };
-  run.deck = STARTER_CARD_IDS.map((cardId) => instantiate(run, cardId));
   run.score = computeScore(run);
   return run;
+}
+
+export function chooseClass(run: RunState, classId: string): RunState {
+  const next = clone(run);
+  if (next.phase !== 'CLASS' && next.phase !== 'DECK') {
+    throw new Error('Só é possível escolher classe na preparação');
+  }
+  const cls = classById(classId);
+  next.classId = cls.id;
+  next.maxHp = cls.maxHp;
+  next.hp = cls.maxHp;
+  next.draft = [...cls.starter];
+  next.deck = [];
+  next.phase = 'DECK';
+  next.score = computeScore(next);
+  return next;
+}
+
+export function confirmDeck(run: RunState, cardIds: string[]): RunState {
+  const next = clone(run);
+  if (next.phase !== 'DECK') {
+    throw new Error('Monte o baralho antes de descer');
+  }
+  if (!next.classId) {
+    throw new Error('Escolha uma classe primeiro');
+  }
+  validateDeck(next.classId, cardIds);
+  next.draft = [...cardIds];
+  next.deck = cardIds.map((cardId) => instantiate(next, cardId));
+  next.phase = 'MAP';
+  next.score = computeScore(next);
+  return next;
+}
+
+export function preparedRun(input: {
+  id: string;
+  userId: string;
+  seed?: number;
+  classId?: ClassId;
+}): RunState {
+  const cls = classById(input.classId ?? 'foleiro');
+  return confirmDeck(chooseClass(startRun(input), cls.id), [...cls.starter]);
 }
 
 export function enterNode(run: RunState): RunState {
   const next = clone(run);
   if (next.phase !== 'MAP') {
     throw new Error('Só é possível entrar num nó a partir do mapa');
+  }
+  if (!next.classId || next.deck.length === 0) {
+    throw new Error('Monte o baralho antes de descer');
   }
   const node = next.map[next.floor];
   if (!node || node.cleared) {
@@ -232,7 +279,7 @@ export function enterNode(run: RunState): RunState {
     return next;
   }
   if (node.kind === 'SHOP') {
-    const picked = pickUnique(SHOP_POOL, 3, next.rng);
+    const picked = pickUnique(offerPoolFor(next.classId), 3, next.rng);
     next.rng = picked.next;
     next.shopOffer = picked.items;
     next.phase = 'SHOP';

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Layers } from 'lucide-react'
-import { cardById } from '@game/catalog'
+import { CLASSES, cardById } from '@game/catalog'
 import type { CombatState, RunState, ScoreEntry } from '@game/types'
 import { BrandMark } from '@/components/BrandMark'
 import { CardFace } from '@/components/CardFace'
@@ -8,6 +8,7 @@ import { ForgeMap } from '@/components/ForgeMap'
 import { HeroPortrait } from '@/components/HeroPortrait'
 import { HowToPlay } from '@/components/HowToPlay'
 import { ManaPips } from '@/components/ManaPips'
+import { PrepScreen } from '@/components/PrepScreen'
 import { api, errorMessage, unwrap } from '@/lib/api'
 import type { Envelope } from '@/lib/types'
 
@@ -74,6 +75,9 @@ export default function PlayPage() {
     <div className="space-y-6">
       <header className="flex flex-wrap items-center justify-between gap-3 text-sm text-soot-500">
         <span>
+          {run.classId
+            ? `${CLASSES.find((item) => item.id === run.classId)?.name ?? 'Foleiro'} · `
+            : ''}
           Vida {run.hp}/{run.maxHp} · ouro {run.gold} · {run.score} pts
         </span>
         {(run.phase === 'WON' || run.phase === 'LOST') && (
@@ -89,6 +93,15 @@ export default function PlayPage() {
 
       {error && (
         <p className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-300">{error}</p>
+      )}
+
+      {(run.phase === 'CLASS' || run.phase === 'DECK') && (
+        <PrepScreen
+          run={run}
+          busy={busy}
+          onChoose={(classId) => command('/runs/current/class', { classId })}
+          onConfirm={(cardIds) => command('/runs/current/deck', { cardIds })}
+        />
       )}
 
       {run.phase === 'MAP' && <ForgeMap run={run} busy={busy} onEnter={() => command('/runs/current/enter')} />}

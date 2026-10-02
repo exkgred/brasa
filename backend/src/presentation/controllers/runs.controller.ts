@@ -3,6 +3,8 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { AccessTokenPayload } from '../../application/interfaces/auth.interfaces';
 import {
   BuyShopUseCase,
+  ChooseClassUseCase,
+  ConfirmDeckUseCase,
   EndTurnUseCase,
   EnterNodeUseCase,
   GetCurrentRunUseCase,
@@ -16,7 +18,12 @@ import {
 } from '../../application/use-cases/runs/run.use-cases';
 import { CurrentUser } from '../decorators/current-user.decorator';
 import { Public } from '../decorators/public.decorator';
-import { CardIdDto, PlayCardDto } from '../dto/brasa.dto';
+import {
+  CardIdDto,
+  ChooseClassDto,
+  ConfirmDeckDto,
+  PlayCardDto,
+} from '../dto/brasa.dto';
 
 @ApiTags('Runs')
 @ApiBearerAuth()
@@ -25,6 +32,8 @@ export class RunsController {
   constructor(
     private readonly startRun: StartRunUseCase,
     private readonly getCurrent: GetCurrentRunUseCase,
+    private readonly chooseClass: ChooseClassUseCase,
+    private readonly confirmDeck: ConfirmDeckUseCase,
     private readonly enterNode: EnterNodeUseCase,
     private readonly playCard: PlayCardUseCase,
     private readonly endTurn: EndTurnUseCase,
@@ -46,6 +55,26 @@ export class RunsController {
   @Get('runs/current')
   current(@CurrentUser() user: AccessTokenPayload) {
     return this.getCurrent.execute({ userId: user.sub });
+  }
+
+  @Post('runs/current/class')
+  @HttpCode(200)
+  @ApiOperation({ summary: 'Escolher classe e receber o baralho inicial' })
+  pickClass(
+    @CurrentUser() user: AccessTokenPayload,
+    @Body() dto: ChooseClassDto,
+  ) {
+    return this.chooseClass.execute({ userId: user.sub, classId: dto.classId });
+  }
+
+  @Post('runs/current/deck')
+  @HttpCode(200)
+  @ApiOperation({ summary: 'Confirmar o baralho e abrir o mapa' })
+  buildDeck(
+    @CurrentUser() user: AccessTokenPayload,
+    @Body() dto: ConfirmDeckDto,
+  ) {
+    return this.confirmDeck.execute({ userId: user.sub, cardIds: dto.cardIds });
   }
 
   @Post('runs/current/enter')

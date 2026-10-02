@@ -2,6 +2,8 @@ import { Inject, Injectable } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import {
   buyShop,
+  chooseClass,
+  confirmDeck,
   endTurn,
   enterNode,
   leaveShop,
@@ -103,6 +105,26 @@ export class MutateRunUseCase {
     const next = wrapEngine(() => mutate(current));
     await persistOutcome(this.runs, this.users, current, next);
     return next;
+  }
+}
+
+@Injectable()
+export class ChooseClassUseCase {
+  constructor(private readonly mutateRun: MutateRunUseCase) {}
+  execute(input: { userId: string; classId: string }) {
+    return this.mutateRun.execute(input.userId, (run) =>
+      chooseClass(run, input.classId),
+    );
+  }
+}
+
+@Injectable()
+export class ConfirmDeckUseCase {
+  constructor(private readonly mutateRun: MutateRunUseCase) {}
+  execute(input: { userId: string; cardIds: string[] }) {
+    return this.mutateRun.execute(input.userId, (run) =>
+      confirmDeck(run, input.cardIds),
+    );
   }
 }
 

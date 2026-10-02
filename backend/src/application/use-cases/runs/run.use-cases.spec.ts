@@ -1,4 +1,4 @@
-import { cardById } from '../../../domain/game/catalog';
+import { cardById, classById } from '../../../domain/game/catalog';
 import { startRun } from '../../../domain/game/engine';
 import {
   BusinessRuleError,
@@ -7,6 +7,8 @@ import {
 import { memoryRuns, memoryUsers, player } from '../__tests__/memory';
 import {
   BuyShopUseCase,
+  ChooseClassUseCase,
+  ConfirmDeckUseCase,
   EndTurnUseCase,
   EnterNodeUseCase,
   GetCurrentRunUseCase,
@@ -27,7 +29,7 @@ describe('run use cases', () => {
       userId: 'user-1',
       seed: 1,
     });
-    expect(started.phase).toBe('MAP');
+    expect(started.phase).toBe('CLASS');
     const current = await new GetCurrentRunUseCase(runs).execute({
       userId: 'user-1',
     });
@@ -47,6 +49,14 @@ describe('run use cases', () => {
     const users = memoryUsers([player()]);
     const mutate = new MutateRunUseCase(runs, users);
     await new StartRunUseCase(runs).execute({ userId: 'user-1', seed: 1 });
+    await new ChooseClassUseCase(mutate).execute({
+      userId: 'user-1',
+      classId: 'foleiro',
+    });
+    await new ConfirmDeckUseCase(mutate).execute({
+      userId: 'user-1',
+      cardIds: classById('foleiro').starter,
+    });
     const combat = await new EnterNodeUseCase(mutate).execute({
       userId: 'user-1',
     });
@@ -204,6 +214,6 @@ describe('run use cases', () => {
       seed: 2,
     });
     expect(next.id).not.toBe('old');
-    expect(next.phase).toBe('MAP');
+    expect(next.phase).toBe('CLASS');
   });
 });
