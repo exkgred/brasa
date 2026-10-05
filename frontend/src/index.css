@@ -205,13 +205,43 @@ body.in-combat .app-main {
 }
 
 .hand-card {
+  --tilt: 0deg;
+  transform: rotate(var(--tilt));
   transform-origin: bottom center;
   transition: transform 0.16s ease;
 }
 
-.hand-card:hover {
-  transform: translateY(-22px) scale(1.08) !important;
+.hand-card:hover:not(.is-playing) {
+  transform: translateY(-22px) scale(1.08) rotate(var(--tilt));
   z-index: 5;
+}
+
+.hand-card.is-playing {
+  z-index: 30;
+  pointer-events: none;
+  animation: card-play 0.42s ease-in forwards;
+}
+
+.hand-card.is-playing .card-face {
+  box-shadow: 0 0 0 3px #fbbf24, 0 18px 40px rgba(249, 115, 22, 0.55);
+}
+
+@keyframes card-play {
+  0% {
+    transform: rotate(var(--tilt)) translateY(0) scale(1);
+    opacity: 1;
+    filter: brightness(1);
+  }
+  38% {
+    transform: rotate(0deg) translateY(-110px) scale(1.16);
+    opacity: 1;
+    filter: brightness(1.35);
+  }
+  100% {
+    transform: rotate(0deg) translateY(-240px) scale(0.55);
+    opacity: 0;
+    filter: brightness(1.8);
+  }
 }
 
 .card-face {
@@ -666,9 +696,11 @@ body.in-combat .app-main {
 
   .hand-card,
   .hand-card:hover,
+  .hand-card.is-playing,
   .card-playable {
     transition: none;
     transform: none !important;
+    animation: none;
   }
 }
 

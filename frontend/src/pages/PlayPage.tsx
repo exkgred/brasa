@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Layers } from 'lucide-react'
 import { CLASSES, cardById } from '@game/catalog'
 import type { CombatState, RunState, ScoreEntry } from '@game/types'
@@ -213,9 +213,34 @@ function CombatBoard({
   const enemy = combat.enemies[0]
   const enemyId = enemy?.id ?? 'mesa'
   const [board, setBoard] = useState(() => pickBoard())
+  const [playingId, setPlayingId] = useState<string | null>(null)
+  const playTimer = useRef<ReturnType<typeof window.setTimeout> | undefined>(undefined)
   useEffect(() => {
     setBoard(pickBoard())
   }, [enemyId])
+  useEffect(() => {
+    if (playingId && !combat.hand.some((card) => card.instanceId === playingId)) {
+      setPlayingId(null)
+    }
+  }, [combat.hand, playingId])
+  useEffect(() => {
+    if (error) setPlayingId(null)
+  }, [error])
+  useEffect(() => {
+    return () => {
+      if (playTimer.current !== undefined) window.clearTimeout(playTimer.current)
+    }
+  }, [])
+
+  function playCard(instanceId: string) {
+    if (playingId || busy) return
+    setPlayingId(instanceId)
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (playTimer.current !== undefined) window.clearTimeout(playTimer.current)
+    playTimer.current = window.setTimeout(() => {
+      onPlay(instanceId)
+    }, reduced ? 0 : 420)
+  }
   const playableCount = combat.hand.filter((card) => {
     const def = cardById(card.cardId)
     return !def.effect.unplayable && def.cost <= combat.energy
@@ -242,7 +267,7 @@ function CombatBoard({
 
       <div className="mid-row">
         <p className="combat-banner">{lastLog}</p>
-        <button type="button" disabled={busy} className={`end-turn-btn ${playableCount === 0 ? 'end-turn-ready' : ''}`} onClick={onEndTurn}>
+        <button type="button" disabled={busy || Boolean(playingId)} className={`end-turn-btn ${playableCount === 0 ? 'end-turn-ready' : ''}`} onClick={onEndTurn}>
           Encerrar
           <span>turno</span>
         </button>
@@ -262,16 +287,22 @@ function CombatBoard({
       <div className="hand-row">
         {combat.hand.map((card, index) => {
           const def = cardById(card.cardId)
-          const playable = !busy && !def.effect.unplayable && def.cost <= combat.energy
-          const locked = busy || def.effect.unplayable || def.cost > combat.energy
+          const resolving = playingId === card.instanceId
+          const blocked = busy || Boolean(playingId)
+          const playable = !blocked && !def.effect.unplayable && def.cost <= combat.energy
+          const locked = blocked || def.effect.unplayable || def.cost > combat.energy
           const tilt = (index - (combat.hand.length - 1) / 2) * 5
           return (
-            <div key={card.instanceId} className="hand-card" style={{ transform: `rotate(${tilt}deg)` }}>
+            <div
+              key={card.instanceId}
+              className={`hand-card ${resolving ? 'is-playing' : ''}`}
+              style={{ '--tilt': `${tilt}deg` } as React.CSSProperties}
+            >
               <CardFace
                 cardId={card.cardId}
                 playable={playable}
-                disabled={locked}
-                onClick={playable ? () => onPlay(card.instanceId) : undefined}
+                disabled={locked && !resolving}
+                onClick={playable ? () => playCard(card.instanceId) : undefined}
               />
             </div>
           )
